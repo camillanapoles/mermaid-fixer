@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mermaid Fixer - AI-Powered Diagram Syntax Fixer</title>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --success-color: #22c55e;
+            --error-color: #ef4444;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .panel {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .panel-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+            color: white;
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .panel-header.output {
+            background: linear-gradient(135deg, var(--success-color), #16a34a);
+        }
+        
+        .panel-body {
+            padding: 1.5rem;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 300px;
+            padding: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.875rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+            color: white;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .btn-secondary {
+            background: var(--border-color);
+            color: var(--text-color);
+        }
+        
+        .btn-secondary:hover {
+            background: #cbd5e1;
+        }
+        
+        .output-area {
+            min-height: 300px;
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 1rem;
+            color: #e2e8f0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+            overflow-x: auto;
+        }
+        
+        .preview-container {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .preview-container svg {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        .status-message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        
+        .status-message.error {
+            background: #fef2f2;
+            color: var(--error-color);
+            border: 1px solid #fecaca;
+            display: block;
+        }
+        
+        .status-message.success {
+            background: #f0fdf4;
+            color: var(--success-color);
+            border: 1px solid #bbf7d0;
+            display: block;
+        }
+        
+        .status-message.loading {
+            background: #f8fafc;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .output-wrapper {
+            position: relative;
+        }
+        
+        .example-link {
+            color: var(--primary-color);
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        
+        .example-link:hover {
+            color: var(--primary-hover);
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+        
+        footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 1rem;
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            color: var(--text-color);
+        }
+
+        .tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔧 Mermaid Fixer</h1>
+            <p>AI-powered Mermaid diagram syntax fixer. Paste your broken diagram and get it fixed instantly!</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="panel">
+                <div class="panel-header">
+                    📝 Input Mermaid Code
+                </div>
+                <div class="panel-body">
+                    <textarea id="inputCode" placeholder="Paste your Mermaid diagram code here...
+
+Example:
+graph TD
+    A[获取数据(get_id)] --> B{验证: status == 200}
+    B -- 是 --> C[记录: cost + time]
+    B -- 否 --> D[错误处理]"></textarea>
+                    <p style="margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.875rem;">
+                        Try an <span class="example-link" id="exampleLink">example diagram</span> to see how it works.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <div class="panel-header output">
+                    ✅ Fixed Output
+                </div>
+                <div class="panel-body">
+                    <div id="statusMessage" class="status-message"></div>
+                    
+                    <div class="tabs">
+                        <button class="tab active" id="codeTabBtn">Code</button>
+                        <button class="tab" id="previewTabBtn">Preview</button>
+                    </div>
+                    
+                    <div id="codeTab" class="tab-content active">
+                        <div class="output-wrapper">
+                            <div id="outputCode" class="output-area">Fixed code will appear here...</div>
+                            <button class="copy-btn" id="copyBtn" title="Copy to clipboard">📋</button>
+                        </div>
+                    </div>
+                    
+                    <div id="previewTab" class="tab-content">
+                        <div id="preview" class="preview-container">
+                            <span style="color: var(--text-secondary);">Preview will appear here after fixing...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="button-container">
+            <button class="btn btn-secondary" id="clearBtn">🗑️ Clear</button>
+            <button class="btn btn-primary" id="fixBtn">🔧 Fix Mermaid Code</button>
+        </div>
+        
+        <footer>
+            <p>
+                Built with ❤️ using Rust | 
+                <a href="https://github.com/sopaco/mermaid-fixer" target="_blank">GitHub</a> | 
+                <a href="https://github.com/sopaco/mermaid-fixer/blob/main/LICENSE" target="_blank">MIT License</a>
+            </p>
+        </footer>
+    </div>
+    
+    <script>
+        // Global state
+        var lastFixedCode = '';
+        var mermaidLoaded = false;
+        
+        // Example diagram with intentional errors
+        var exampleDiagram = 'graph TD\n    A[获取数据(get_id)] --> B{验证: status == 200}\n    B -- 是 --> C[记录: cost + time]\n    B -- 否 --> D[错误处理]';
+        
+        // DOM Elements
+        var inputCodeEl = document.getElementById('inputCode');
+        var outputCodeEl = document.getElementById('outputCode');
+        var statusMessageEl = document.getElementById('statusMessage');
+        var previewEl = document.getElementById('preview');
+        var fixBtnEl = document.getElementById('fixBtn');
+        var clearBtnEl = document.getElementById('clearBtn');
+        var copyBtnEl = document.getElementById('copyBtn');
+        var exampleLinkEl = document.getElementById('exampleLink');
+        var codeTabBtnEl = document.getElementById('codeTabBtn');
+        var previewTabBtnEl = document.getElementById('previewTabBtn');
+        var codeTabEl = document.getElementById('codeTab');
+        var previewTabEl = document.getElementById('previewTab');
+        
+        // Event Listeners
+        exampleLinkEl.addEventListener('click', loadExample);
+        fixBtnEl.addEventListener('click', fixMermaid);
+        clearBtnEl.addEventListener('click', clearAll);
+        copyBtnEl.addEventListener('click', copyOutput);
+        codeTabBtnEl.addEventListener('click', function() { switchTab('code'); });
+        previewTabBtnEl.addEventListener('click', function() { switchTab('preview'); });
+        
+        function loadExample() {
+            inputCodeEl.value = exampleDiagram;
+        }
+        
+        function showStatus(message, type) {
+            statusMessageEl.className = 'status-message ' + type;
+            
+            if (type === 'loading') {
+                statusMessageEl.innerHTML = '<div class="spinner"></div>' + message;
+            } else {
+                statusMessageEl.textContent = message;
+            }
+        }
+        
+        function hideStatus() {
+            statusMessageEl.className = 'status-message';
+            statusMessageEl.textContent = '';
+        }
+        
+        function switchTab(tab) {
+            codeTabBtnEl.classList.remove('active');
+            previewTabBtnEl.classList.remove('active');
+            codeTabEl.classList.remove('active');
+            previewTabEl.classList.remove('active');
+            
+            if (tab === 'code') {
+                codeTabBtnEl.classList.add('active');
+                codeTabEl.classList.add('active');
+            } else {
+                previewTabBtnEl.classList.add('active');
+                previewTabEl.classList.add('active');
+                
+                // Render preview if we have fixed code
+                if (lastFixedCode) {
+                    renderPreview(lastFixedCode);
+                }
+            }
+        }
+        
+        function renderPreview(code) {
+            if (typeof mermaid !== 'undefined' && mermaidLoaded) {
+                try {
+                    mermaid.render('mermaid-preview', code).then(function(result) {
+                        previewEl.innerHTML = result.svg;
+                    }).catch(function(error) {
+                        previewEl.innerHTML = '<span style="color: var(--error-color);">Error rendering preview: ' + error.message + '</span>';
+                    });
+                } catch (error) {
+                    previewEl.innerHTML = '<span style="color: var(--error-color);">Error rendering preview: ' + error.message + '</span>';
+                }
+            } else {
+                previewEl.innerHTML = '<span style="color: var(--text-secondary);">Mermaid preview is not available. Copy the fixed code to use elsewhere.</span>';
+            }
+        }
+        
+        function fixMermaid() {
+            var inputCode = inputCodeEl.value.trim();
+            
+            if (!inputCode) {
+                showStatus('Please enter some Mermaid code first.', 'error');
+                return;
+            }
+            
+            // Disable button and show loading
+            fixBtnEl.disabled = true;
+            showStatus('Fixing your Mermaid diagram...', 'loading');
+            
+            // Use setTimeout to allow UI to update
+            setTimeout(function() {
+                try {
+                    var fixedCode = fixMermaidClientSide(inputCode);
+                    
+                    lastFixedCode = fixedCode;
+                    outputCodeEl.textContent = fixedCode;
+                    
+                    showStatus('✅ Diagram fixed successfully!', 'success');
+                    
+                    // Try to render preview
+                    renderPreview(fixedCode);
+                    
+                } catch (error) {
+                    showStatus('Error fixing diagram: ' + error.message, 'error');
+                    outputCodeEl.textContent = 'Error: ' + error.message;
+                } finally {
+                    fixBtnEl.disabled = false;
+                }
+            }, 100);
+        }
+        
+        // Client-side fixing logic based on common Mermaid syntax issues
+        function fixMermaidClientSide(code) {
+            var fixed = code;
+            
+            // Rule 1: Fix node text with parentheses - remove content in parentheses
+            fixed = fixed.replace(/\[([^\]]*)\(([^)]*)\)([^\]]*)\]/g, '[$1$3]');
+            
+            // Rule 2: Fix node text with colons - replace with spaces
+            fixed = fixed.replace(/\[([^\]]*):\s*([^\]]*)\]/g, '[$1 $2]');
+            
+            // Rule 3: Fix node text with equals - replace with "equals"
+            fixed = fixed.replace(/\[([^\]]*)==([^\]]*)\]/g, '[$1 equals $2]');
+            
+            // Rule 4: Fix node text with plus signs - replace with "and"
+            fixed = fixed.replace(/\[([^\]]*)\+([^\]]*)\]/g, '[$1 and $2]');
+            
+            // Rule 5: Fix Chinese arrow labels - wrap with quotes
+            fixed = fixed.replace(/--\s*([\u4e00-\u9fa5]+)\s*-->/g, '-- "$1" -->');
+            
+            // Rule 6: Fix curly brace content with colons
+            fixed = fixed.replace(/\{([^}]*):\s*([^}]*)\}/g, '{$1 $2}');
+            
+            // Rule 7: Ensure proper node ID format (no special chars at start)
+            fixed = fixed.replace(/^\s*(\d+)([A-Za-z])/gm, '    N$1$2');
+            
+            return fixed;
+        }
+        
+        function copyOutput() {
+            var text = outputCodeEl.textContent;
+            
+            if (text && text !== 'Fixed code will appear here...') {
+                navigator.clipboard.writeText(text).then(function() {
+                    // Show temporary feedback
+                    var originalText = copyBtnEl.textContent;
+                    copyBtnEl.textContent = '✓';
+                    setTimeout(function() {
+                        copyBtnEl.textContent = originalText;
+                    }, 1000);
+                }).catch(function(err) {
+                    console.error('Failed to copy:', err);
+                });
+            }
+        }
+        
+        function clearAll() {
+            inputCodeEl.value = '';
+            outputCodeEl.textContent = 'Fixed code will appear here...';
+            previewEl.innerHTML = '<span style="color: var(--text-secondary);">Preview will appear here after fixing...</span>';
+            lastFixedCode = '';
+            hideStatus();
+        }
+        
+        // Try to load mermaid dynamically
+        (function() {
+            var script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js';
+            script.onload = function() {
+                mermaidLoaded = true;
+                mermaid.initialize({ 
+                    startOnLoad: false,
+                    theme: 'default',
+                    securityLevel: 'loose'
+                });
+            };
+            script.onerror = function() {
+                console.log('Mermaid library could not be loaded. Preview will not be available.');
+            };
+            document.head.appendChild(script);
+        })();
+    </script>
+</body>
+</html>

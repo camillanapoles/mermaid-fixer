@@ -204,9 +204,10 @@ Create a `config.toml` file in your project root:
 
 ```toml
 [llm]
-provider = "openai"
-model = "gpt-4"
-api_key = "your-api-key-here"  # or set via environment variable
+provider = "github"
+model = "openai/gpt-4.1"
+api_key = "your-github-token"  # or set via GITHUB_TOKEN environment variable
+base_url = "https://models.github.ai/inference"
 max_tokens = 4000
 temperature = 0.1
 
@@ -215,11 +216,13 @@ timeout_seconds = 30
 max_retries = 3
 ```
 
+> **Note:** Mermaid Fixer now uses GitHub Models API by default. You can use your GitHub token (with Copilot access) via the `GITHUB_TOKEN` environment variable or `LITHO_LLM_API_KEY`.
+
 ### Advanced Options
 
 ```sh
 # Custom LLM configuration
-mermaid-fixer -d ./docs --llm-provider openai --llm-model gpt-5-mini --max-tokens 8192
+mermaid-fixer -d ./docs --llm-provider github --llm-model openai/gpt-4.1 --max-tokens 8192
 
 # Custom and retries
 mermaid-fixer -d ./docs --max-retries 5
@@ -227,6 +230,23 @@ mermaid-fixer -d ./docs --max-retries 5
 # Custom config file
 mermaid-fixer -d ./docs --config custom-config.toml
 ```
+
+## 🌐 Web Interface
+
+Mermaid Fixer includes a web interface for quick diagram fixing without installing the CLI tool.
+
+### Online Demo
+
+Visit the [GitHub Pages demo](https://sopaco.github.io/mermaid-fixer/) to try Mermaid Fixer directly in your browser.
+
+### Local Development
+
+To run the web interface locally:
+
+1. Open `web/index.html` in your browser
+2. Paste your Mermaid diagram code
+3. Click "Fix Mermaid Code" to fix the diagram
+4. View the fixed code and preview
 
 ## 📋 Command Line Options
 

@@ -28,10 +28,10 @@ impl Default for Config {
     fn default() -> Self {
         Self {
             llm: LlmConfig {
-                provider: "mistral".to_string(),
-                model: "mistral-small-latest".to_string(),
+                provider: "github".to_string(),
+                model: "openai/gpt-4.1".to_string(),
                 api_key: None,
-                base_url: None,
+                base_url: Some("https://models.github.ai/inference".to_string()),
                 max_tokens: Some(65536),
                 temperature: Some(0.1),
             },
@@ -61,7 +61,9 @@ impl Config {
         
         // 从环境变量中读取API密钥（如果配置文件中没有设置）
         if config.llm.api_key.is_none() {
-            config.llm.api_key = std::env::var("LITHO_LLM_API_KEY").ok();
+            config.llm.api_key = std::env::var("GITHUB_TOKEN")
+                .or_else(|_| std::env::var("LITHO_LLM_API_KEY"))
+                .ok();
         }
 
         Ok(config)

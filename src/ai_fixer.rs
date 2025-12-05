@@ -59,7 +59,7 @@ impl AiFixer {
         let prompt_template = include_str!("prompt.tpl").to_owned();
 
         let base_url = config.llm.base_url.clone()
-            .unwrap_or_else(|| "https://api.mistral.ai/v1".to_string());
+            .unwrap_or_else(|| "https://models.github.ai/inference".to_string());
 
         Ok(Self {
             api_key,
