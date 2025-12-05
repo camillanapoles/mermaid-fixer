@@ -501,8 +501,10 @@ graph TD
         function fixMermaidClientSide(code) {
             var fixed = code;
             
-            // Rule 1: Fix node text with parentheses - remove content in parentheses
-            fixed = fixed.replace(/\[([^\]]*)\(([^)]*)\)([^\]]*)\]/g, '[$1$3]');
+            // Rule 1: Fix node text with parentheses - remove content in parentheses and trim extra spaces
+            fixed = fixed.replace(/\[([^\]]*)\(([^)]*)\)([^\]]*)\]/g, function(match, p1, p2, p3) {
+                return '[' + (p1 + p3).replace(/\s+/g, ' ').trim() + ']';
+            });
             
             // Rule 2: Fix node text with colons - replace with spaces
             fixed = fixed.replace(/\[([^\]]*):\s*([^\]]*)\]/g, '[$1 $2]');
@@ -559,7 +561,7 @@ graph TD
                 mermaid.initialize({ 
                     startOnLoad: false,
                     theme: 'default',
-                    securityLevel: 'loose'
+                    securityLevel: 'strict'
                 });
             };
             script.onerror = function() {
