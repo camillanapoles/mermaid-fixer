@@ -204,10 +204,10 @@ Create a `config.toml` file in your project root:
 
 ```toml
 [llm]
-provider = "github"
-model = "openai/gpt-4.1"
-api_key = "your-github-token"  # or set via GITHUB_TOKEN environment variable
-base_url = "https://models.github.ai/inference"
+provider = "gemini"
+model = "gemini-2.5-flash"
+api_key = "your-gemini-api-key"  # or set via GEMINI_API_KEY environment variable
+base_url = "https://generativelanguage.googleapis.com/v1beta"
 max_tokens = 4000
 temperature = 0.1
 
@@ -216,13 +216,13 @@ timeout_seconds = 30
 max_retries = 3
 ```
 
-> **Note:** Mermaid Fixer now uses GitHub Models API by default. You can use your GitHub token (with Copilot access) via the `GITHUB_TOKEN` environment variable or `LITHO_LLM_API_KEY`.
+> **Note:** Mermaid Fixer now uses Google Gemini 2.5 Flash by default. You can use your Gemini API key via the `GEMINI_API_KEY`, `GOOGLE_API_KEY`, or `LITHO_LLM_API_KEY` environment variable.
 
 ### Advanced Options
 
 ```sh
 # Custom LLM configuration
-mermaid-fixer -d ./docs --llm-provider github --llm-model openai/gpt-4.1 --max-tokens 8192
+mermaid-fixer -d ./docs --llm-provider gemini --llm-model gemini-2.5-flash --max-tokens 8192
 
 # Custom and retries
 mermaid-fixer -d ./docs --max-retries 5

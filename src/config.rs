@@ -28,10 +28,10 @@ impl Default for Config {
     fn default() -> Self {
         Self {
             llm: LlmConfig {
-                provider: "github".to_string(),
-                model: "openai/gpt-4.1".to_string(),
+                provider: "gemini".to_string(),
+                model: "gemini-2.5-flash".to_string(),
                 api_key: None,
-                base_url: Some("https://models.github.ai/inference".to_string()),
+                base_url: Some("https://generativelanguage.googleapis.com/v1beta".to_string()),
                 max_tokens: Some(65536),
                 temperature: Some(0.1),
             },
@@ -61,7 +61,8 @@ impl Config {
         
         // 从环境变量中读取API密钥（如果配置文件中没有设置）
         if config.llm.api_key.is_none() {
-            config.llm.api_key = std::env::var("GITHUB_TOKEN")
+            config.llm.api_key = std::env::var("GEMINI_API_KEY")
+                .or_else(|_| std::env::var("GOOGLE_API_KEY"))
                 .or_else(|_| std::env::var("LITHO_LLM_API_KEY"))
                 .ok();
         }
